@@ -25,7 +25,7 @@ async function issueCertificate(certData) {
     let mTreeHash =  await encryption.generateMerkleRoot(certDBModel);
     let universitySignature = await encryption.createDigitalSignature(mTreeHash, certData.universityEmail);
     let studentSignature = await encryption.createDigitalSignature(mTreeHash, certData.studentEmail);
-    // let chaincodeInitLedger = await chaincode.invokeChaincode('initLedger') //maybe this changed the stuff?
+    let chaincodeInitLedger = await chaincode.invokeChaincode('initLedger') //maybe this changed the stuff?
     let chaincodeResult = await chaincode.invokeChaincode("issueCertificate",
         [mTreeHash, universitySignature, studentSignature, certData.dateOfIssuing, certDBModel._id, universityObj.publicKey, studentObj.publicKey ], false, certData.universityEmail);
 
