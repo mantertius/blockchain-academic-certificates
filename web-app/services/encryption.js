@@ -4,7 +4,7 @@ const SHA256 = require('crypto-js/sha256');
 const chaincode = require('./fabric/chaincode');
 const walletUtil = require('./fabric/wallet-utils');
 const certificates = require('../database/models/certificates');
-
+const logger = require('./logger')
 let ecdsa = new jsrs.ECDSA({'curve': 'secp256r1'});
 
 
@@ -130,7 +130,7 @@ async function verifyCertificateProof(mTreeProof, disclosedData, certUUID) {
 
     let verificationSuccess = mTree.verifyMultiProof(mTreeRoot, paramsToShareIndex, disclosedDataHash, mTree.getDepth(), mTreeProof);
 
-    console.log("Verification status: " + verificationSuccess);
+    logger.debug("Verification status: " + verificationSuccess);
     return verificationSuccess;
 }
 

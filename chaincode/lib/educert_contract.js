@@ -5,6 +5,8 @@ const { Contract } = require('fabric-contract-api');
 const Certificate = require('./certificate');
 const UniversityProfile = require('./university_profile');
 const Schema = require('./schema');
+const logger = require('../logger.js');
+
 
 
 class EducertContract extends Contract {
@@ -15,10 +17,10 @@ class EducertContract extends Contract {
      * @param {Context} ctx the transaction context.
      */
     async initLedger(ctx) {
-        console.log("-------------------------initLedger Called---------------------------------------")
+        logger.debug("-------------------------initLedger Called---------------------------------------")
       
         let schemaCertificate = new Schema("university degree", "v1", ["universityName", "major", "departmentName", "cgpa"] );
-
+        
         await ctx.stub.putState("schema_" + schemaCertificate.id, Buffer.from(JSON.stringify(schemaCertificate)));
 
         return schemaCertificate;
@@ -36,13 +38,13 @@ class EducertContract extends Contract {
      * @param {String} studentPK - Public key or public ID of student account 
      */
     async issueCertificate(ctx, certHash, universitySignature, studentSignature, dateOfIssuing, certUUID, universityPK, studentPK) {
-        console.log("============= START : Issue Certificate ===========");
+        logger.debug("============= START : Issue Certificate ===========");
         //todo: Validate data.
 
         const certificate = new Certificate(certHash, universitySignature, studentSignature, dateOfIssuing, certUUID, universityPK, studentPK);
         await ctx.stub.putState("CERT" + certUUID, Buffer.from(JSON.stringify(certificate)));
 
-        console.log("============= END : Issue Certificate ===========");
+        logger.debug("============= END : Issue Certificate ===========");
         return certificate;
     }
 
@@ -56,12 +58,12 @@ class EducertContract extends Contract {
     * @param {String} description 
     */
     async registerUniversity(ctx, name, publicKey, location, description) {
-        console.log("============= START : Register University ===========");
+        logger.debug("============= START : Register University ===========");
         //todo Add validation.
         const university = new UniversityProfile(name, publicKey, location, description);
         await ctx.stub.putState("UNI" + name, Buffer.from(JSON.stringify(university)));
 
-        console.log("============= END : Register University ===========");
+        logger.debug("============= END : Register University ===========");
         return university;
     }
 
@@ -78,8 +80,8 @@ class EducertContract extends Contract {
             throw new Error(`University ${name} does not exist`);
         }
 
-        console.log(`University ${name} Query Successful. Profile: `);
-        console.log(profileAsBytes.toString());
+        logger.debug(`University ${name} Query Successful. Profile: `);
+        logger.debug(profileAsBytes.toString());
         return JSON.parse(profileAsBytes.toString());
     }
 
@@ -89,14 +91,17 @@ class EducertContract extends Contract {
      * @param {String} schemaVersion Schema version number. Eg - "v1", "v2" etc
      */
     async queryCertificateSchema(ctx, schemaVersion) {
+        logger.debug('inside queryCertificateSchema');
+        this.initLedger(ctx) //i don't think this is what fixed the app, but i'm too scared to remove it.
         let schemaAsBytes = await ctx.stub.getState("schema_" + schemaVersion);
-
+        logger.debug('value of schemaAsBytes:');
+        logger.debug(schemaAsBytes);
         if (!schemaAsBytes || schemaAsBytes.length === 0) {
             throw new Error(`Schema ${schemaVersion} does not exist`);
         }
 
-        console.log(`Schema ${schemaVersion} Query Successful. Schema: `);
-        console.log(schemaAsBytes.toString());
+        logger.debug(`Schema ${schemaVersion} Query Successful. Schema: `);
+        logger.debug(schemaAsBytes.toString());
         return JSON.parse(schemaAsBytes.toString());
     }
 
@@ -113,8 +118,8 @@ class EducertContract extends Contract {
             throw new Error(`Certificate with UUID: ${UUID} does not exist`);
         }
 
-        console.log(`Certificate ${UUID} Query Successful. Certificate Info: `);
-        console.log(certificateAsBytes.toString());
+        logger.debug(`Certificate ${UUID} Query Successful. Certificate Info: `);
+        logger.debug(certificateAsBytes.toString());
         return JSON.parse(certificateAsBytes.toString());
     }
 
@@ -139,8 +144,8 @@ class EducertContract extends Contract {
             try {
                 certArray.push(Certificate.deserialize(queryResults[i].value))
             } catch (err) {
-                console.log("Failed to instantiate Certificate object from JSON in getAllCertificateByStudent\n" + err);
-                console.log("DATA TYPE:  " + typeof queryResults[i])
+                logger.debug("Failed to instantiate Certificate object from JSON in getAllCertificateByStudent\n" + err);
+                logger.debug("DATA TYPE:  " + typeof queryResults[i])
                 certArray.push(queryResults[i])
             }
         }
@@ -169,8 +174,8 @@ class EducertContract extends Contract {
             try {
                 certArray.push(Certificate.deserialize(queryResults[i].value))
             } catch (err) {
-                console.log("Failed to instantiate Certificate object from JSON in getAllCertificateByUniversity\n" + err);
-                console.log("DATA TYPE:  " + typeof queryResults[i])
+                logger.debug("Failed to instantiate Certificate object from JSON in getAllCertificateByUniversity\n" + err);
+                logger.debug("DATA TYPE:  " + typeof queryResults[i])
                 certArray.push(queryResults[i])
             }
         }
@@ -208,8 +213,8 @@ class EducertContract extends Contract {
       */
     async queryWithQueryString(ctx, queryString) {
 
-        console.log("============= START : queryWithQueryString ===========");
-        console.log(JSON.stringify(queryString));
+        logger.debug("============= START : queryWithQueryString ===========");
+        logger.debug(JSON.stringify(queryString));
 
         let resultsIterator = await ctx.stub.getQueryResult(queryString);
 
@@ -222,24 +227,24 @@ class EducertContract extends Contract {
             if (res.value && res.value.value.toString()) {
                 let jsonRes = {};
 
-                console.log(res.value.value.toString('utf8'));
+                logger.debug(res.value.value.toString('utf8'));
 
                 jsonRes.key = res.value.key;
 
                 try {
                     jsonRes.value = JSON.parse(res.value.value.toString('utf8'));
                 } catch (err) {
-                    console.log(err);
+                    logger.debug(err);
                     jsonRes.value = res.value.value.toString('utf8');
                 }
 
                 allResults.push(jsonRes);
             }
             if (res.done) {
-                console.log('end of data');
+                logger.debug('end of data');
                 await resultsIterator.close();
-                console.log(allResults);
-                console.log("============= END : queryWithQueryString ===========");
+                logger.debug(allResults);
+                logger.debug("============= END : queryWithQueryString ===========");
                 return allResults;
             }
         }

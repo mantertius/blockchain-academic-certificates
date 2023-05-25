@@ -62,6 +62,9 @@ async function invokeChaincode( func, args, isQuery, userEmail) {
             if (args) {
                 logger.debug('inside isQuery, args');
                 logger.debug(args);
+                logger.debug('inside isQuery, func');
+                logger.debug(func);
+                // let initLedger = await networkObj.contract.submitTransaction('initLedger') //maybe this fixed the break?
                 let response = await networkObj.contract.evaluateTransaction(func, ...args);
                 logger.debug(response);
                 logger.debug(`Transaction ${func} with args ${args} has been evaluated`);

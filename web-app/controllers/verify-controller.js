@@ -8,7 +8,9 @@ async function postVerify(req,res,next) {
     try {
         let proofObject = req.body.proofObject;
         proofObject = JSON.parse(proofObject);
-
+        logger.debug('inside postVerify')
+        logger.debug('proofObject:')
+        logger.debug(proofObject)
         if (!proofObject.disclosedData || Object.keys(proofObject.disclosedData).length === 0  ) {
             throw new Error("No parameter given. Provide parameters that need to be verified");
         }
