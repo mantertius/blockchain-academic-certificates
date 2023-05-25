@@ -50,13 +50,17 @@ Related Issue: [#4](https://github.com/TasinIshmam/blockchain-academic-certifica
 
 In order to install the application, please make sure you have the following installed with the same major version number.
 
-1) Hyperledger fabric version 2.1.x.  
+1) Hyperledger latest version 2.1.x.  
+    ```sh
+    #install the latest version using
+    
+    curl -sSLO https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh && chmod +x install-fabric.sh | ./install-fabric.sh
+    ```
 
-2) Node version 12.x.  
+2) Node and NPM latest version (install it using nvm https://github.com/nvm-sh/nvm#install--update-script)
+3) MongoDB latest version (available on https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/)
+    
 
-3) MongoDB version 4.0.x    
-
-4) Latest version of NPM package manager  
 
 
 #### Starting Fabric Network
@@ -72,12 +76,19 @@ In order to install the application, please make sure you have the following ins
     cd test-network
     ./network.sh up createChannel -ca -c mychannel -s couchdb
     ```
-3) Package the chaincode situated in the chaincode directory.  
-    1) Follow the instructions [here](https://hyperledger-fabric.readthedocs.io/en/release-2.2/deploy_chaincode.html#javascript)
-    2) **Note**: Make sure in the final package instruction to name the package appropriately. By default it's named fabcar_1 
-    
-4) Install the chaincode according to the instructions [here](https://hyperledger-fabric.readthedocs.io/en/release-2.1/deploy_chaincode.html#install-the-chaincode-package).(I'm referencing the instructions for Fabric version 2.1, please switch to the docs of your appropriate installed version).   
+3) Package the chaincode situated in the chaincode directory.
+    1) move (or open another terminal) to `/blockchain-academic-certificates/chaincode` and run npm install:
+        ```sh
+        cd ../blockchain-academic-certificates/chaincode
+        export CC_LOCATION=$PWD
+        ```
+    2) move to `fabric-samples/test-network`:
+        ```sh
+        cd ../fabric-samples/test-network
+        ./network.sh deployCC -ccn basic -ccp $CC_LOCATION -ccl javascript
+        ```
 
+    If there's something wrong, check [here](https://hyperledger-fabric.readthedocs.io/en/release-2.2/deploy_chaincode.html#javascript)
 
 #### Starting Web Application
 Make sure mongodb and fabric network are running in the background before starting this process. 
@@ -90,7 +101,6 @@ Make sure mongodb and fabric network are running in the background before starti
 2) Install all modules
     ```sh 
    npm install
-   npm install --only=dev  # For dev dependencies
     ```
 3) Create .env file
     ``` 
@@ -109,7 +119,7 @@ Make sure mongodb and fabric network are running in the background before starti
         EXPRESS_SESSION_SECRET = sdfsdfddfgdfg3242efDFHI234 
         CCP_PATH = /home/tasin/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/connection-org1.json
         FABRIC_CHANNEL_NAME = mychannel
-        FABRIC_CHAINCODE_NAME = fabcar_1
+        FABRIC_CHAINCODE_NAME = basic
         ```
 5) Start the server in development mode
     ```sh
